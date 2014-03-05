@@ -1,22 +1,62 @@
 module Stex
   module Acts
     module Messagable
+      #
+      # @return [Bool] +true+ if the given model +acts_as_messagable+
+      #
       def self.messagable?(model)
         model.respond_to?(:acts_as_messagable_options)
       end
 
+      #
+      # Sets the class which is used to create messages in
+      # the system. Defaults to +Notification+
+      #
+      # @param [ActiveRecord::Base, String, Symbol] klass
+      #   Class to be used for message handling
+      #
       def self.message_class=(klass)
         @@message_class_name = klass.to_s
       end
 
+      #
+      # @return [ActiveRecord::Base] (Notification)
+      #   The class used to create new messages in the system
+      #
       def self.message_class
-        @@message_class_name.classify.constantize
+        self.message_class_name.constantize
       end
 
+      #
+      # @return [String]
+      #   The message class' name
+      #
       def self.message_class_name
+        @@message_class_name ||= 'Notification'
         @@message_class_name.classify
       end
 
+      #
+      # Helper method to run certain +acts_as_messagable+ options.
+      # It basically determines the value's class and either
+      # directly runs given Proc objects or tries to handle symbols
+      # as instance method. The +:if+ options on ActiveRecord validations
+      # work the same way.
+      #
+      # @param [Messagable] instance
+      #   The sender or recipient the given option was defined in
+      #
+      # @param [Proc, String, Symbol] proc_or_symbol
+      #   Either a Proc object or an instance method name.
+      #   If a +String+ or +Symbol+ is given, a method with this name
+      #   has to be defined in +instance+
+      #
+      # @param [Object] default (nil)
+      #   If +proc_or_symbol+ is neither +Proc+ nor +String+ or +Symbol+,
+      #   this value is returned instead.
+      #
+      # @return [Object] The executed method or +default+
+      #
       def self.run_method(instance, proc_or_symbol, default = nil)
         if proc_or_symbol.is_a?(Symbol) || proc_or_symbol.is_a?(String)
           raise Exception.new("Expected #{proc_or_symbol} to be an instance method of #{instance.class.name}") unless instance.respond_to?(proc_or_symbol)
@@ -69,6 +109,11 @@ module Stex
         result
       end
 
+      #
+      # Includes the class methods
+      #
+      # @private
+      #
       def self.included(base)
         base.class_eval do
           base.send :extend, ClassMethods
@@ -124,9 +169,9 @@ module Stex
         #   # The selector could simplified by +:tutors+ instead of the lambda expression
         #
         def acts_as_messagable(options = {})
-          #Add has_many associations for easy message management
           klass = Stex::Acts::Messagable.message_class_name
 
+          #Add has_many associations for easy message management
           has_many :received_messages, :class_name => klass, :as => :recipient, :conditions => {:sender_copy => false}
           has_many :unread_messages, :class_name => klass, :as => :recipient, :conditions => {:read_at => nil, :sender_copy => false}
           has_many :read_messages, :class_name => klass, :as => :recipient, :conditions => ['read_at IS NOT NULL AND sender_copy = ?', false]

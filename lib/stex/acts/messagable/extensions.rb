@@ -58,18 +58,39 @@ module Stex
           metadata[:url] = url
         end
 
+        #
+        # @return [Messagable]
+        #   The additional recipients which were determined by the +send_message+ function
+        #
         def additional_recipients
           meta_record_list(:additional_recipients)
         end
 
+        #
+        # Sets additional recipients in this message's metadata.
+        # This is automatically done by the +send_message+ function.
+        #
+        # @param [Array<Messagable>] recipients
+        #   The list of additional recipients
+        #
         def additional_recipients=(recipients = [])
           meta_record_list_update(:additional_recipients, recipients)
         end
 
+        #
+        # @return [Array<String>]
+        #   The +recipient_name+s of all additional recipients. This uses the
+        #   +recipient_name+ option set in the recipient's model class.
+        #
         def additional_recipient_names
           additional_recipients.map {|r| r.notifiable_accessor(:recipient_name) }
         end
 
+        #
+        # @return [Array<Messagable>]
+        #   The original recipients which were initially given to the
+        #   +send_message+ function (so no derived recipients)
+        #
         def original_recipients
           result = []
           metadata[:original_recipients].each do |recipient|
@@ -86,6 +107,11 @@ module Stex
           result
         end
 
+        #
+        # @return [Array<String>]
+        #   The names of the +original_recipients+,
+        #   uses the +recipient_name+ option set in the recipient's model class
+        #
         def original_recipient_names
           original_recipients.map do |recipient_or_array|
             if recipient_or_array.is_a?(Array)
@@ -122,12 +148,18 @@ module Stex
 
         private
 
+        #
+        # @private
+        #
         def meta_record_list(key)
           return [] unless metadata[key]
           @meta_record_list ||= {}
           @meta_record_list[key] ||= metadata[key].map {|class_name, id| class_name.constantize.find(id)}
         end
 
+        #
+        # @private
+        #
         def meta_record_list_update(key, list = [])
           @meta_record_list ||= {}
           @meta_record_list[key] = list
