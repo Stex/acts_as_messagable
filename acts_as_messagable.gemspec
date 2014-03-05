@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Stefan Exner']
   spec.email         = ['stex@sterex.de']
   spec.description   = %q{Handles Message sending between ActiveRecord instances}
-  spec.summary       = %q{Handles Message sending between ActiveRecord instances}
-  spec.homepage      = ''
+  spec.summary       = %q{Inter-Model message sending}
+  spec.homepage      = 'https://github.com/Stex/acts_as_messagable'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files`.split($/)
