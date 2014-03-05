@@ -83,7 +83,7 @@ module Stex
         #   +recipient_name+ option set in the recipient's model class.
         #
         def additional_recipient_names
-          additional_recipients.map {|r| r.notifiable_accessor(:recipient_name) }
+          additional_recipients.map {|r| r.messagable_accessor(:recipient_name) }
         end
 
         #
@@ -116,10 +116,10 @@ module Stex
           original_recipients.map do |recipient_or_array|
             if recipient_or_array.is_a?(Array)
               recipient      = recipient_or_array.first
-              optional_names = recipient_or_array.last.map {|i| recipient.notifiable_accessor(:optional_recipients).assoc(i.to_sym).third }
-              [recipient.notifiable_accessor(:recipient_name), *optional_names]
+              optional_names = recipient_or_array.last.map {|i| recipient.messagable_accessor(:optional_recipients).assoc(i.to_sym).third }
+              [recipient.messagable_accessor(:recipient_name), *optional_names]
             else
-              recipient_or_array.notifiable_accessor(:recipient_name)
+              recipient_or_array.messagable_accessor(:recipient_name)
             end
           end
         end
@@ -128,8 +128,8 @@ module Stex
         # Stores the original recipients of this notification.
         #
         # @param recipients
-        #   An array of +Notifiable+ which may also include optional recipients
-        #   as symbols (see +{Stex::Acts::Notifiable#send_notification}+)
+        #   An array of +Messagable+ which may also include optional recipients
+        #   as symbols (see +{Stex::Acts::Messagable#send_notification}+)
         #
         def original_recipients=(recipients = [])
           result = []
